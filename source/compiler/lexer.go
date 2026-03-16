@@ -15,6 +15,8 @@ const (
 	Num
 	LParen
 	RParen
+	LBrace
+	RBrace
 	Сolon
 	If
 	Else
@@ -22,12 +24,14 @@ const (
 	Break
 	Continue
 	Let
+	Fun
 	Id
 	Assign
 )
 
 var keywords = map[string]int{
 	"let":      Let,
+	"fun":      Fun,
 	"if":       If,
 	"else":     Else,
 	"elif":     Elif,
@@ -81,6 +85,10 @@ func MakeTokens(line string, tb *TokensBox) error {
 			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: LParen, v: "("}, line: 0})
 		case ')':
 			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: RParen, v: ")"}, line: 0})
+		case '{':
+			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: LBrace, v: "{"}, line: 0})
+		case '}':
+			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: RBrace, v: "}"}, line: 0})
 		case ':':
 			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: Сolon, v: ":"}, line: 0})
 		case '=':

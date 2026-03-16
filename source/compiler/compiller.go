@@ -6,18 +6,19 @@ import (
 	"os/exec"
 
 	"mako.com/MahnoLang/source/codegen"
-	"tinygo.org/x/go-llvm"
 )
 
 type Compiler struct {
-	tb  TokensBox
-	ctx *codegen.Context
+	tb     TokensBox
+	ctx    *codegen.Context
+	parser Parser
 }
 
 func MakeCompiler() *Compiler {
 	return &Compiler{
-		tb:  MakeTokensBox(),
-		ctx: codegen.MakeContext(),
+		tb:     MakeTokensBox(),
+		ctx:    codegen.MakeContext(),
+		parser: MakeParser(),
 	}
 }
 
@@ -47,23 +48,21 @@ func (c *Compiler) MakeProgramm(fileName string) {
 		println(tokenInfo.String())
 	}
 
+	c.parser.Tokens = c.tb.tokens
+
 	c.MakeLLVM()
 	c.SaveIR("output.ll")
-	c.Run("output.ll", "output.exe")
+	c.Run("output.ll", "output")
 }
 
 func (c *Compiler) MakeLLVM() {
-	i32 := c.ctx.Ctx.Int32Type()
+	c.parser.Tokens = c.tb.tokens
 
-	fnType := llvm.FunctionType(i32, nil, false)
+	astBox := c.parser.StatementList()
 
-	fn := llvm.AddFunction(c.ctx.Module, "main", fnType)
-
-	block := c.ctx.Ctx.AddBasicBlock(fn, "entry")
-
-	c.ctx.Builder.SetInsertPointAtEnd(block)
-
-	c.ctx.Builder.CreateRet(llvm.ConstInt(i32, 0, false))
+	for _, expr := range astBox.Expressions {
+		expr.Codegen(c.ctx)
+	}
 }
 
 func (c *Compiler) SaveIR(filename string) {
@@ -86,7 +85,7 @@ func (c *Compiler) BuildExe(irFile string, exeFile string) {
 func (c *Compiler) Run(irFile string, exeFile string) {
 	c.BuildExe(irFile, exeFile)
 
-	cmd := exec.Command(exeFile)
+	cmd := exec.Command("./" + exeFile)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin

@@ -1,1 +1,4 @@
-let nan = 4
+
+fun main(){
+    2*2+2
+}
