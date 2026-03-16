@@ -6,10 +6,10 @@ import (
 )
 
 type IntLiteral struct {
-	value int64
+	value int32
 }
 
-func MakeIntLiteral(val int64) *IntLiteral {
+func MakeIntLiteral(val int32) *IntLiteral {
 	return &IntLiteral{value: val}
 }
 

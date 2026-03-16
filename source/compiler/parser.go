@@ -35,10 +35,25 @@ func (p *Parser) eat(wType int) {
 }
 
 func (p *Parser) next() int {
-	if p.Pos < len(p.Tokens) {
+	if p.Pos+1 < len(p.Tokens) {
 		return p.Tokens[p.Pos+1].t.t
 	}
 	panic("call next")
+}
+
+func (p *Parser) matchType() int {
+	switch p.current().t.v {
+	case "int32":
+		return ast.TypeI32
+	case "float32":
+		return ast.TypeF32
+	case "bool":
+		return ast.TypeBool
+	case "string":
+		return ast.TypeString
+	default:
+		panic("err with parsing")
+	}
 }
 
 func (p *Parser) StatementList() AstBox {
@@ -58,11 +73,24 @@ func (p *Parser) statement() ast.Expression {
 		funName := p.current().t.v
 		p.eat(Id)
 		return p.parseFunction(&funName)
+	case Let:
+		p.eat(Let)
+		varName := p.current().t.v
+		p.eat(Id)
+		return p.parseLet(&varName)
+	case Id:
+		if p.next() == Assign {
+			varName := p.current().t.v
+			p.eat(Id)
+			p.eat(Assign)
+			val := p.expression()
+			return ast.MakeAssign(varName, val)
+		}
 	case Num:
 		return p.expression()
-	default:
-		panic("don`t undestart the token")
 	}
+
+	panic("don`t undestart token is statement")
 }
 
 func (p *Parser) expression() ast.Expression {
@@ -111,7 +139,7 @@ func (p *Parser) Factor() ast.Expression {
 	case Num:
 		val, _ := strconv.ParseInt(p.current().t.v, 10, 32)
 		p.eat(Num)
-		return ast.MakeIntLiteral(val)
+		return ast.MakeIntLiteral(int32(val))
 	case LParen:
 		p.eat(LParen)
 		expr := p.expression()
@@ -141,4 +169,20 @@ func (p *Parser) parseFunction(name *string) ast.Expression {
 		ReturnType: llvm.GlobalContext().Int32Type(),
 		Body:       scope,
 	}
+}
+
+func (p *Parser) parseLet(name *string) ast.Expression {
+	if p.current().t.t == Assign {
+		p.eat(Assign)
+		expr := p.expression()
+		return &ast.Let{Name: *name, Value: expr}
+	} else if p.current().t.t == Colon {
+		p.eat(Colon)
+		t := p.matchType()
+		p.eat(Id)
+		p.eat(Assign)
+		e := p.expression()
+		return ast.MakeLet(*name, e, t)
+	}
+	panic("error in let parsing")
 }
