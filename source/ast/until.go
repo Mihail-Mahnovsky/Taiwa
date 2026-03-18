@@ -10,6 +10,7 @@ const (
 	TypeF32
 	TypeString
 	TypeBool
+	TypeVoid
 )
 
 func LLVMType(ctx *codegen.Context, t int) llvm.Type {

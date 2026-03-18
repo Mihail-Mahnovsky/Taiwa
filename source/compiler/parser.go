@@ -142,6 +142,7 @@ func (p *Parser) parseFunction(name *string) ast.Expression {
 	if p.current().t.t == Id {
 		for p.current().t.t != RParen {
 			argName := p.current().t.v
+			p.eat(Id)
 			p.eat(Colon)
 			argType := p.matchType()
 			p.eat(Id)
@@ -158,8 +159,8 @@ func (p *Parser) parseFunction(name *string) ast.Expression {
 	}
 	p.eat(RParen)
 
-	var returnType int
-	if p.next() == Colon {
+	var returnType int = ast.TypeVoid
+	if p.current().t.t == Colon {
 		p.eat(Colon)
 		returnType = p.matchType()
 		p.eat(Id)

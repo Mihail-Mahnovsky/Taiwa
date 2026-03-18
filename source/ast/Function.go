@@ -24,8 +24,10 @@ func (f *Function) Codegen(ctx *codegen.Context) llvm.Value {
 		argTypes = append(argTypes, LLVMType(ctx, a.Type))
 	}
 
+	retType := LLVMType(ctx, f.ReturnType)
+
 	fnType := llvm.FunctionType(
-		LLVMType(ctx, f.ReturnType),
+		retType,
 		argTypes,
 		false,
 	)
@@ -35,7 +37,18 @@ func (f *Function) Codegen(ctx *codegen.Context) llvm.Value {
 	entry := ctx.Ctx.AddBasicBlock(fn, "entry")
 	ctx.Builder.SetInsertPointAtEnd(entry)
 
-	ctx.Builder.CreateRet(f.Body.Codegen(ctx))
+	val := f.Body.Codegen(ctx)
+
+	if val.Type() != retType {
+		switch f.ReturnType {
+		case TypeF32:
+			val = ctx.Builder.CreateSIToFP(val, retType, "")
+		case TypeI32:
+			val = ctx.Builder.CreateFPToSI(val, retType, "")
+		}
+	}
+
+	ctx.Builder.CreateRet(val)
 
 	return fn
 }

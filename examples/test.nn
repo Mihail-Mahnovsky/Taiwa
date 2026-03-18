@@ -1,9 +1,9 @@
 
-fun foo(){
-    
+fun foo() : float32{
+    5+1
 }
 
-fun main(){
+fun main() : int32{
     let x : float32 = 3+4
     x = 1
     2*2+2-6

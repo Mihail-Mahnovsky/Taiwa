@@ -1,9 +1,9 @@
 ; ModuleID = 'main'
 source_filename = "main"
 
-define i32 @foo() {
+define float @foo() {
 entry:
-  ret i32 0
+  ret float 6.000000e+00
 }
 
 define i32 @main() {
