@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"mako.com/MahnoLang/source/ast"
-	"tinygo.org/x/go-llvm"
 )
 
 type AstBox struct {
@@ -41,21 +40,6 @@ func (p *Parser) next() int {
 	panic("call next")
 }
 
-func (p *Parser) matchType() int {
-	switch p.current().t.v {
-	case "int32":
-		return ast.TypeI32
-	case "float32":
-		return ast.TypeF32
-	case "bool":
-		return ast.TypeBool
-	case "string":
-		return ast.TypeString
-	default:
-		panic("err with parsing")
-	}
-}
-
 func (p *Parser) StatementList() AstBox {
 	var exprs AstBox
 
@@ -86,6 +70,7 @@ func (p *Parser) statement() ast.Expression {
 			val := p.expression()
 			return ast.MakeAssign(varName, val)
 		}
+
 	case Num:
 		return p.expression()
 	}
@@ -151,23 +136,45 @@ func (p *Parser) Factor() ast.Expression {
 }
 
 func (p *Parser) parseFunction(name *string) ast.Expression {
+	var args []ast.Arg
+
 	p.eat(LParen)
+	if p.current().t.t == Id {
+		for p.current().t.t != RParen {
+			argName := p.current().t.v
+			p.eat(Colon)
+			argType := p.matchType()
+			p.eat(Id)
+
+			args = append(args, ast.Arg{
+				Name: argName,
+				Type: argType,
+			})
+
+			if p.current().t.t == Comma {
+				p.eat(Comma)
+			}
+		}
+	}
 	p.eat(RParen)
+
+	var returnType int
+	if p.next() == Colon {
+		p.eat(Colon)
+		returnType = p.matchType()
+		p.eat(Id)
+	}
 
 	p.eat(LBrace)
 	statements := p.StatementList()
 	p.eat(RBrace)
 
-	//if p.next() == Colon {
-	//	p.eat(Colon)
-
-	//}
-
 	scope := ast.MakeScope(statements.Expressions)
 	return &ast.Function{
 		Name:       *name,
-		ReturnType: llvm.GlobalContext().Int32Type(),
+		ReturnType: returnType,
 		Body:       scope,
+		Args:       args,
 	}
 }
 
@@ -185,4 +192,23 @@ func (p *Parser) parseLet(name *string) ast.Expression {
 		return ast.MakeLet(*name, e, t)
 	}
 	panic("error in let parsing")
+}
+
+func (p *Parser) matchType() int {
+	if p.current().t.t != Id {
+		panic("expected type identifier")
+	}
+
+	switch p.current().t.v {
+	case "int32":
+		return ast.TypeI32
+	case "float32":
+		return ast.TypeF32
+	case "bool":
+		return ast.TypeBool
+	case "string":
+		return ast.TypeString
+	default:
+		panic("unknown type: " + p.current().t.v)
+	}
 }

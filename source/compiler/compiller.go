@@ -30,11 +30,11 @@ func (c *Compiler) MakeProgramm(fileName string) {
 	defer f.Close()
 
 	scanner := bufio.NewScanner(f)
-	lineNum := 1
+	var lineNum int64 = 1
 
 	for scanner.Scan() {
 		lineText := scanner.Text()
-		if err := MakeTokens(lineText, &c.tb); err != nil {
+		if err := MakeTokens(lineText, &c.tb, lineNum); err != nil {
 			panic(err)
 		}
 		lineNum++

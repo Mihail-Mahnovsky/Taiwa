@@ -16,6 +16,7 @@ func MakeScope(exps []Expression) Scope {
 }
 
 func (s *Scope) Codegen(ctx *codegen.Context) llvm.Value {
+	ctx.PushScope()
 	var last llvm.Value
 	for _, expr := range s.exps {
 		last = expr.Codegen(ctx)
@@ -24,5 +25,6 @@ func (s *Scope) Codegen(ctx *codegen.Context) llvm.Value {
 	if last.IsNil() {
 		last = llvm.ConstInt(ctx.Ctx.Int32Type(), 0, false)
 	}
+	ctx.PopScope()
 	return last
 }

@@ -18,6 +18,7 @@ const (
 	LBrace
 	RBrace
 	Colon
+	Comma
 	If
 	Else
 	Elif
@@ -26,6 +27,8 @@ const (
 	Let
 	Fun
 	Package
+	True
+	False
 	Id
 	Assign
 )
@@ -38,6 +41,8 @@ var keywords = map[string]int{
 	"else":     Else,
 	"elif":     Elif,
 	"break":    Break,
+	"true":     True,
+	"false":    False,
 	"continue": Continue,
 }
 
@@ -48,7 +53,7 @@ type Token struct {
 
 type TokenInfo struct {
 	t    Token
-	line int
+	line int64
 }
 
 func (t TokenInfo) String() string {
@@ -65,7 +70,7 @@ func MakeTokensBox() TokensBox {
 	}
 }
 
-func MakeTokens(line string, tb *TokensBox) error {
+func MakeTokens(line string, tb *TokensBox, lineNum int64) error {
 
 	if strings.TrimSpace(line) == "" {
 		return nil
@@ -76,25 +81,27 @@ func MakeTokens(line string, tb *TokensBox) error {
 		case ' ', '\t', '\r', '\n':
 			continue
 		case '+':
-			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: Add, v: "+"}, line: 0})
+			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: Add, v: "+"}, line: lineNum})
 		case '-':
-			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: Sub, v: "-"}, line: 0})
+			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: Sub, v: "-"}, line: lineNum})
 		case '*':
-			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: Mul, v: "*"}, line: 0})
+			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: Mul, v: "*"}, line: lineNum})
 		case '/':
-			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: Div, v: "/"}, line: 0})
+			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: Div, v: "/"}, line: lineNum})
 		case '(':
-			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: LParen, v: "("}, line: 0})
+			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: LParen, v: "("}, line: lineNum})
 		case ')':
-			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: RParen, v: ")"}, line: 0})
+			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: RParen, v: ")"}, line: lineNum})
 		case '{':
-			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: LBrace, v: "{"}, line: 0})
+			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: LBrace, v: "{"}, line: lineNum})
 		case '}':
-			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: RBrace, v: "}"}, line: 0})
+			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: RBrace, v: "}"}, line: lineNum})
 		case ':':
-			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: Colon, v: ":"}, line: 0})
+			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: Colon, v: ":"}, line: lineNum})
 		case '=':
-			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: Assign, v: "="}, line: 0})
+			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: Assign, v: "="}, line: lineNum})
+		case ',':
+			tb.tokens = append(tb.tokens, TokenInfo{t: Token{t: Comma, v: ","}, line: lineNum})
 		default:
 			if unicode.IsDigit(rune(line[i])) {
 				num := ""

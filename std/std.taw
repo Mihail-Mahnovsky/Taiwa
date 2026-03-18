@@ -1,0 +1,9 @@
+package std
+
+fun print(arg : string){
+
+}
+
+fun println(arg : string){
+    
+}

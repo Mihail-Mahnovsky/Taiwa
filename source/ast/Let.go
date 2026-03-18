@@ -27,7 +27,7 @@ func (l *Let) Codegen(ctx *codegen.Context) llvm.Value {
 
 	ctx.Builder.CreateStore(val, alloc)
 
-	ctx.Variables[l.Name] = alloc
+	ctx.AddVariable(l.Name, alloc)
 
 	return val
 }

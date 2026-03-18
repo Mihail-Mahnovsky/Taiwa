@@ -18,10 +18,9 @@ func MakeAssign(name string, value Expression) *Assign {
 }
 
 func (a *Assign) Codegen(ctx *codegen.Context) llvm.Value {
-
 	val := a.Right.Codegen(ctx)
 
-	alloc, ok := ctx.Variables[a.Name]
+	alloc, ok := ctx.GetVariable(a.Name)
 	if !ok {
 		panic("undefined variable: " + a.Name)
 	}
